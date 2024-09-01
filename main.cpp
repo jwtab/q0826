@@ -9,6 +9,7 @@
 #include <algorithm>
 using namespace std;
 
+#include <unistd.h>
 #include <dirent.h>
 
 /*
@@ -90,6 +91,23 @@ public:
                 file_path_new = file_path_old;
                 file_path_new = file_path_new + index_str;
                 
+                while(1)
+                {
+                    if(0 == access(file_path_new.c_str(),F_OK))
+                    {
+                        count++;
+
+                        snprintf(index_str,4,"-%02d",count);
+                        
+                        file_path_new = file_path_old;
+                        file_path_new = file_path_new + index_str;
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+
                 if(0 == rename(file_path_old.c_str(),file_path_new.c_str()))
                 {
                     count++;
@@ -178,13 +196,23 @@ public:
         return head;
     }
 
+    /*
+        
+        slow ..... fast
+
+            slow*****fast == 10
+                [slow ... fast]  **tag
+
+                    slow = fast->next
+                        [slow ... fast] == 10?
+    */
     ListNode* remove_(ListNode *head,bool &deleted)
     {
         unordered_map<ListNode*,int> to_delete_nodes;
 
 		ListNode* dummy = new ListNode(1);
 		dummy->next = head;
-		
+    
 		//从slow的val开始累乘，如果结果是10，即直接让slow = fast->next.
 		ListNode *slow = head;
         ListNode *fast = nullptr;
@@ -248,7 +276,7 @@ public:
         {
             ListNode *temp = pre->next;
 
-            if(to_delete_nodes.count(temp) > 0)
+            if(to_delete_nodes.count(temp) > 0 || 10 == temp->val)
             {
                 to_delete_nodes.erase(temp);
 
@@ -316,6 +344,7 @@ int main(int argc,char **argv)
     }
     */
 
+    /* [10,2,2,5]*/
     vector<int> nums = {-2,5,-1,-10,1,-1,10,2,2,2,5,5};
 
     Solution s;
@@ -329,6 +358,6 @@ int main(int argc,char **argv)
     s.printList(new_list);
 
     s.deleteList(new_list);
-
+    
     return 0;
 }
